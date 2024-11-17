@@ -289,12 +289,12 @@ const timeAgo = getTimeAgo(timestamp); // Get time ago
 
 
 const shareText2 = encodeURIComponent(
-  `I joined Farcaster on ${formattedDate} which was ${timeAgo}. \nSince then, ${percent}%25 of users have joined after me\nframe by @cashlessman.eth`
+  `I joined Farcaster on ${formattedDate} which was ${timeAgo} ago. \nSince then, ${percent}%25 of users have joined after me\nframe by @cashlessman.eth`
 );
 
-  const shareUrl1 = `https://warpcast.com/~/compose?text=${shareText1}&embeds[]=https://moxiedemo.vercel.app/frames`;
+  const shareUrl1 = `https://warpcast.com/~/compose?text=${shareText1}&embeds[]=https://fc-joined.vercel.app/frames`;
 
-  const shareUrl2 = `https://warpcast.com/~/compose?text=${shareText2}&embeds[]=https://moxiedemo.vercel.app/frames${
+  const shareUrl2 = `https://warpcast.com/~/compose?text=${shareText2}&embeds[]=https://fc-joined.vercel.app/frames${
     fid ? `?userfid=${fid}` : ""
   }`;
 
