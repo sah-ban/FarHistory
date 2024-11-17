@@ -42,7 +42,6 @@ export async function GET(req: NextRequest) {
       "Airstack API response (user data):",
       JSON.stringify(lastFid.data, null, 2)
     );
-console.log("asdfghjklkjhgfdsdfghjklkjhgfdsdfghj")
 console.log(lastFid.data)
     return NextResponse.json({
       lastFid: lastFid.data,

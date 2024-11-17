@@ -19,8 +19,16 @@ const frameHandler = frames(async (ctx) => {
     rFid: string;
   
   }
+  interface TimeCreatedResponse {
+    username: string;
+    timeCreated: string;
+  
+  }
+
   let userData: UserData | undefined;
   let lastFid: lastFidResponse = { rFid: "0" }; 
+  let created: TimeCreatedResponse | undefined;
+
 
   let error: string | null = null;
   let isLoading = false;
@@ -95,6 +103,36 @@ const frameHandler = frames(async (ctx) => {
     
   };
 
+  const timeCreatedAt = async (fid: string) => {
+    try {
+      // Construct the API URL
+      const fcUrl = `${appURL()}/api/timeCreated?fid=${encodeURIComponent(fid)}`;
+  
+      // Make the API call
+      const fidResponse = await fetch(fcUrl);
+      if (!fidResponse.ok) {
+        throw new Error(`Fid HTTP error! Status: ${fidResponse.status}`);
+      }
+  
+      // Parse the JSON response
+      const data = await fidResponse.json();
+  
+      if (data.username && data.timestamp) {
+        // Extract username and timestamp information
+        created = {
+          username: data.username,
+          timeCreated: data.timestamp,
+        };
+      } else {
+        throw new Error("Invalid response structure or missing data");
+      }
+    } catch (err) {
+      console.error("Error fetching Time Created:", err);
+      error = (err as Error).message;
+    }
+  };
+  
+
   const extractFid = (url: string): string | null => {
     try {
       const parsedUrl = new URL(url);
@@ -131,75 +169,70 @@ const frameHandler = frames(async (ctx) => {
     fid && (!userData || (userData as UserData).fid !== fid);
 
   if (shouldFetchData && fid) {
-    await Promise.all([fetchUserData(fid), fetchLastFid(fid)]);
+    await Promise.all([fetchUserData(fid), fetchLastFid(fid), timeCreatedAt(fid)]);
   }
 
-function getOrdinalSuffix(day: number): string {
-  if (day > 3 && day < 21) return day + 'th';
-  switch (day % 10) {
-    case 1:  return day + 'st';
-    case 2:  return day + 'nd';
-    case 3:  return day + 'rd';
-    default: return day + 'th';
-  }
-}
-
-let formattedDate: string | null = null;
-let timeDifference: string | null = null;
-
-const timestamp = userData?.userCreatedAt;
-
-if (timestamp) {
-  const date = new Date(timestamp);  
-
-  const months = [
-    "January", "February", "March", "April", "May", "June", 
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  formattedDate = `${getOrdinalSuffix(date.getDate())} ${months[date.getMonth()]} ${date.getFullYear()}`;
-  
-  const currentDate = new Date();
-
-  let diffYears = currentDate.getFullYear() - date.getFullYear();
-  let diffMonths = currentDate.getMonth() - date.getMonth() + (diffYears * 12); // Convert years to months
-
-  if (diffMonths < 0) {
-    diffMonths += 12;
-    diffYears -= 1;
-  }
-
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
-  let diffDays = currentDate.getDate() - date.getDate();
-  
-  if (diffDays < 0) {
-    diffDays += daysInMonth;
-  }
-
-  if (diffYears > 0) {
-    timeDifference = `${diffYears} year(s), ${diffMonths} month(s), ${diffDays} day(s) ago`;
-  } else if (diffMonths > 0) {
-    timeDifference = `${diffMonths} month(s), ${diffDays} day(s) ago`;
-  } else if (diffDays > 0) {
-    timeDifference = `${diffDays} day(s) ago`;
-  } else {
-    timeDifference = "Today";
-  }
-
-  console.log(formattedDate);  
-  console.log(timeDifference);
-} else {
-  console.log("User creation date is not available.");
-}
-
-if (formattedDate) {
-  console.log("Formatted date is:", formattedDate);
-  console.log("Time difference is:", timeDifference);
-}
 let percent: string | null = null;
 percent= (( Number(Number(lastFid?.rFid)-Number(userData?.fid)) / Number((lastFid?.rFid)))*100).toFixed(1);
 console.log("Perrcent is:", percent);
+console.log(created?.timeCreated)
+let timestamp= Number(created?.timeCreated);
 
+const formattedDate = formatDate(timestamp); // Format the date
+const timeAgo = getTimeAgo(timestamp); // Get time ago
+
+    // Function to format the date
+    function formatDate(timestamp: number): string {
+      const date = new Date(timestamp * 1000); // Convert timestamp to milliseconds
+      const daySuffix = getDaySuffix(date.getDate());
+      const day = date.getDate() + daySuffix;
+      const month = date.toLocaleString('default', { month: 'long' });
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
+    }
+    
+
+    // Function to get the suffix for the day
+    function getDaySuffix(day: number): string {
+      if (day > 3 && day < 21) return 'th'; // Catch 11th-13th
+      switch (day % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+      }
+    }
+    
+
+    // Function to calculate time ago
+    function getTimeAgo(timestamp: number): string {
+      const now = Date.now(); // Current time in milliseconds
+      const totalSeconds = Math.floor((now - timestamp * 1000) / 1000);
+    
+      const secondsInAMinute = 60;
+      const secondsInAnHour = secondsInAMinute * 60;
+      const secondsInADay = secondsInAnHour * 24;
+      const secondsInAMonth = secondsInADay * 30; // Approximation
+      const secondsInAYear = secondsInADay * 365; // Approximation
+    
+      const years = Math.floor(totalSeconds / secondsInAYear);
+      const months = Math.floor((totalSeconds % secondsInAYear) / secondsInAMonth);
+      const days = Math.floor((totalSeconds % secondsInAMonth) / secondsInADay);
+    
+      const timeAgoParts = [];
+      if (years > 0) {
+        timeAgoParts.push(`${years} year${years > 1 ? 's' : ''}`);
+      }
+      if (months > 0 || years > 0) {
+        timeAgoParts.push(`${months} month${months > 1 ? 's' : ''}`);
+      }
+      if (days > 0 || months > 0 || years > 0) {
+        timeAgoParts.push(`${days} day${days > 1 ? 's' : ''}`);
+      }
+    
+      return timeAgoParts.length > 0 ? timeAgoParts.join(', ') : 'just now';
+    }
+    
 
   const SplashScreen = () => (
 <div tw="flex flex-col w-full h-full bg-[#FFF5EE] text-[#8660cc] font-sans font-bold">
@@ -237,7 +270,7 @@ console.log("Perrcent is:", percent);
 
        <span tw="flex mt-4 ">{formattedDate} </span>
 
-       <span tw="flex mt-3"> {timeDifference}</span>
+       <span tw="flex mt-3"> {timeAgo} ago</span>
        <span tw="flex mt-3">{(( Number(Number(lastFid?.rFid)-Number(userData?.fid)) / Number((lastFid?.rFid)))*100).toFixed(1)}% users joined after you</span>
 
        </div>
@@ -256,7 +289,7 @@ console.log("Perrcent is:", percent);
 
 
 const shareText2 = encodeURIComponent(
-  `I joined Farcaster on ${formattedDate} which was ${timeDifference}. \nSince then, ${percent}%25 of users have joined after me\nframe by @cashlessman.eth`
+  `I joined Farcaster on ${formattedDate} which was ${timeAgo}. \nSince then, ${percent}%25 of users have joined after me\nframe by @cashlessman.eth`
 );
 
   const shareUrl1 = `https://warpcast.com/~/compose?text=${shareText1}&embeds[]=https://moxiedemo.vercel.app/frames`;
