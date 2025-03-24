@@ -299,7 +299,7 @@ const shareText2 = encodeURIComponent(
   const shareUrl1 = `https://warpcast.com/~/compose?text=${shareText1}&embeds[]=https://far-profile.vercel.app`;
 
   const shareUrl2 = `https://warpcast.com/~/compose?text=${shareText2}&embeds[]=https://far-profile.vercel.app/${
-    fid ? `?userfid=${fid}` : ""
+    fid ? `?fid=${fid}` : ""
   }`;
 
 
