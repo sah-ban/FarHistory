@@ -293,7 +293,7 @@ const timeAgo = getTimeAgo(timestamp); // Get time ago
 
 
 const shareText2 = encodeURIComponent(
-  `I joined Farcaster on ${formattedDate} which was ${timeAgo} ago. \nSince then, ${percent} of users have joined after me\nframe by @cashlessman.eth`
+  `I joined Farcaster on ${formattedDate}, which was ${timeAgo} ago. \nSince then, ${percent}% of users have joined after me\nframe by @cashlessman.eth`
 );
 
   const shareUrl1 = `https://warpcast.com/~/compose?text=${shareText1}&embeds[]=https://far-profile.vercel.app`;
