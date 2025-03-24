@@ -307,7 +307,8 @@ const shareText2 = encodeURIComponent(
 
   if (!userData) {
     buttons.push(
-      <Button action="post" target={{ href: `${appURL()}?userfid=${fid}` }}>
+      <Button action="link"
+            target="https://warpcast.com/~/frames/launch?domain=far-profile.vercel.app"  >
         Check Me
       </Button>,
       <Button
@@ -324,7 +325,8 @@ const shareText2 = encodeURIComponent(
     );
   } else {
     buttons.push(
-      <Button action="post" target={{ href: `${appURL()}?userfid=${fid}` }}>
+      <Button action="link"
+            target="https://warpcast.com/~/frames/launch?domain=far-profile.vercel.app"  >
         Check Me
       </Button>,
       <Button action="link" target={shareUrl2}>
